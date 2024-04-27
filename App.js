@@ -12,7 +12,12 @@ const Tab = createBottomTabNavigator();
 export default function App() {
   return (
     <NavigationContainer>
-      <Tab.Navigator>
+      <Tab.Navigator
+      screenOptions={{
+        tabBarInactiveBackgroundColor: "darkseagreen",
+        tabBarActiveTintColor: "black",
+        tabBarActiveBackgroundColor: "darkgreen",
+      }}>
       <Tab.Screen 
     name="Home" 
     component={HomeScreen} 
@@ -26,9 +31,10 @@ export default function App() {
         fontWeight: "bold"
       },
       tabBarLabel: 'Home',  
-      tabBarIcon: () => <Ionicons name="home" size={24} color="black" />,    
+      tabBarIcon: () => <Ionicons name="home" size={24}  />,    
       tabBarLabelStyle: {
         fontFamily: 'monospace',
+        fontWeight: "bold"
         
       },
     }}
@@ -46,9 +52,10 @@ export default function App() {
         fontWeight: "bold"
       },
       tabBarLabel: 'Maps', 
-      tabBarIcon: () =>  <Entypo name="map" size={24} color="black" />,    
+      tabBarIcon: () =>  <Entypo name="map" size={24} />,    
       tabBarLabelStyle: {
         fontFamily: 'monospace',
+        fontWeight: "bold"
       }
     }}
   />

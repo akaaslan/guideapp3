@@ -110,7 +110,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
     position: "absolute",
-    left: "10%",
     width: "80%",
     height: "auto"
   },

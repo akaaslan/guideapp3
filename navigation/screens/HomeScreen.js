@@ -21,7 +21,7 @@ export default function HomeScreen() {
       flex: 1,   
       alignItems: 'left',
       justifyContent: 'top',
-      paddingHorizontal : 20,
+      paddingHorizontal : 12,
       paddingTop: 5,
     },
   
