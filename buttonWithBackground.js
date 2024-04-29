@@ -111,7 +111,8 @@ const styles = StyleSheet.create({
     elevation: 5,
     position: "absolute",
     width: "80%",
-    height: "auto"
+    height: "auto",
+    marginLeft: 40,
   },
   speakButton: {
     backgroundColor: "darkseagreen",
@@ -177,6 +178,10 @@ export default function App() {
         <ButtonWithBackground
         text= "İstiklal Caddesi"
         image="https://i.neredekal.com/i/neredekal/75/585x300/607d72f6a26c8a5c640267bd"
+        />
+        <ButtonWithBackground
+        text= "Technical University of Sofia"
+        image= "https://lh5.googleusercontent.com/proxy/dis_ROCaIxt6jwr0jlE2Gv9eXuLp2zE_YNE51WLWZj7FNAPRbsQVNZ8hFSMlKUZuI0dYMD7dqdT_VaY92xnBKOsBNg"
         />
     </View>
   );

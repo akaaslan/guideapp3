@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Modal, Linking, TouchableWithoutFeedback } from 'react-native';
-import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from 'react-native-maps';
+import { StyleSheet, View, Text, TouchableOpacity, Modal, Linking, TouchableWithoutFeedback, Alert, Image } from 'react-native';
+import MapView, { PROVIDER_GOOGLE, Marker, Polyline, Callout } from 'react-native-maps';
 import * as Location from 'expo-location';
-
+import BosphorusIcon from "./../../icons/bosphorus.png"
 export default function MapScreen({ navigation }) {
   const [location, setLocation] = useState(null);
   const [destination, setDestination] = useState(null);
@@ -12,6 +12,7 @@ export default function MapScreen({ navigation }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [destinationSelected, setDestinationSeleceted] = useState(false);
   const GOOGLE_MAPS_API_KEY = 'AIzaSyDkk9xmxjAS0BMU9ym4_e6LTdBlArakEnI'; // Google Maps API anahtarınızı buraya ekleyin
+  
 
   useEffect(() => {
     (async () => {
@@ -27,6 +28,10 @@ export default function MapScreen({ navigation }) {
   }, []);
 
   const handleMarkerPress = async (coordinate) => {
+    if (!location) {
+      console.log("Location is not available yet.");
+      return;
+    }
     setDestination(coordinate);
     setRouteCoordinates([]);
     try {
@@ -73,7 +78,17 @@ export default function MapScreen({ navigation }) {
   };
 
   //this code decodes polylines coming from Google Maps API and implements into my map. 
-  //
+  const isMarkerVisible = (markerCoordinate, currentLocation) => {
+    if (!currentLocation || !markerCoordinate) {
+      return false;
+    }
+    const { latitude: markerLat, longitude: markerLng } = markerCoordinate;
+    const { latitude: currentLat, longitude: currentLng } = currentLocation.coords;
+    const distance = Math.sqrt(Math.pow(markerLat - currentLat, 2) + Math.pow(markerLng - currentLng, 2)) * 111000; // 1 degrees = 111km
+
+    return distance <= 6000;
+  };
+  //calculates the distance between user location and marker then makes it shown if the marker is closer than 6 kilometers.
 
   let initialRegion = {
     latitude: location ? location.coords.latitude : 40.9819,
@@ -90,6 +105,7 @@ export default function MapScreen({ navigation }) {
         initialRegion={initialRegion}
         showsUserLocation={true}
         showsMyLocationButton={true}
+        
       >
         {destination && (
           <Polyline
@@ -98,26 +114,80 @@ export default function MapScreen({ navigation }) {
             strokeWidth={4}
           />
         )}
+        {isMarkerVisible({ latitude: 41.0055, longitude: 28.9769 }, location) && (
         <Marker
           coordinate={{ latitude: 41.0055, longitude: 28.9769 }}
           title="Blue Mosque"
           onPress={() => handleMarkerPress({ latitude: 41.0055, longitude: 28.9769 })}
-        />
+
+          >
+          <Callout>
+            <View>
+              <Image style={styles.calloutImage} source={{ uri: 'https://trthaberstatic.cdn.wp.trt.com.tr/resimler/2032000/sultanahmet-camii-aa-2033022.jpg' }} />
+              <Text style={styles.calloutText}>Blue Mosque</Text>
+            </View>
+          </Callout>
+        </Marker>
+        )}
+        {isMarkerVisible({latitude: 41.04654252347306, longitude: 29.03422380818258 }, location)&& (
+        <Marker 
+        coordinate={{ latitude: 41.04654252347306, longitude: 29.03422380818258 }}
+        title="Bosphorus"
+        onPress={() => handleMarkerPress({ latitude: 41.04654252347306, longitude: 29.03422380818258 })}>
+          
+        <Callout>
+        <View>
+              <Image style={styles.calloutImage} source={{ uri: 'https://lh5.googleusercontent.com/proxy/w2dEY4MpQOYKVXAMSXXdG44ETq4Ac4aAO8cR0n2UQQQ01kSIJujFPIRcghHnSUBt2MbZ2Dg-qLFd7zwk0ab9FWmcfrsrEELWh5ckqX7agE7tLElhck-Ip45YOcrFeoPmFsfmSA' }} />
+              <Text style={styles.calloutText}>Bosphorus</Text>
+            </View>
+        </Callout>
+        </Marker>
+        )}
+
+        {isMarkerVisible({latitude: 41.0115, longitude: 28.9814 }, location)&& (
+        <Marker 
+        coordinate={{ latitude: 41.0115, longitude: 28.9814 }}
+        title="Topkapı Palace"
+        onPress={() => handleMarkerPress({ latitude: 41.0115, longitude: 28.9814 })}>
+          
+        <Callout>
+        <View>
+              <Image style={styles.calloutImage} source={{ uri: 'https://istanbultarihi.ist/assets/uploads/files/cilt-8/topkapi-sarayi/3-topkapi-sarayi-gulhane-tarafindan.jpg' }} />
+              <Text style={styles.calloutText}>Topkapı Palace</Text>
+            </View>
+        </Callout>
+        </Marker>
+        )}
+
+        {isMarkerVisible({latitude: 41.0283, longitude: 28.9731 }, location)&& (
         <Marker
-          coordinate={{ latitude: 41.04654252347306, longitude: 29.03422380818258 }}
-          title="Bosphorus"
-          onPress={() => handleMarkerPress({ latitude: 41.04654252347306, longitude: 29.03422380818258 })}
-        />
+        coordinate={{ latitude: 41.0283, longitude: 28.9731 }}
+        title="Istiklal Avenue"
+        onPress={() => handleMarkerPress({ latitude: 41.0283, longitude: 28.9731 })}>
+          
+        <Callout>
+        <View>
+              <Image style={styles.calloutImage} source={{BosphorusIcon}} />
+              <Text style={styles.calloutText}>İstiklal Caddesi</Text>
+            </View>
+        </Callout>
+        </Marker>
+        )}
+        {isMarkerVisible({latitude: 42.65714634396518, longitude: 23.355303595910726 }, location)&& (
         <Marker
-          coordinate={{ latitude: 41.0115, longitude: 28.9814 }}
-          title="Topkapı Palace"
-          onPress={() => handleMarkerPress({ latitude: 41.0115, longitude: 28.9814 })}
-        />
+        coordinate={{latitude: 42.65714634396518, longitude:23.355303595910726}}
+        title = "Technical University of Sofia"
+        onPress={() => handleMarkerPress({latitude: 42.65714634396518, longitude:23.355303595910726})}>
+        </Marker>
+        )}
+        {isMarkerVisible({latitude: 40.979827846837544, longitude: 28.72117185018814 }, location)&& (
         <Marker
-          coordinate={{ latitude: 41.0283, longitude: 28.9731 }}
-          title="Istiklal Avenue"
-          onPress={() => handleMarkerPress({ latitude: 41.0283, longitude: 28.9731 })}
-        />
+        coordinate={{longitude:40.979827846837544, latitude:28.72117185018814}}
+        title="Avcılar Central Mosque"
+        onPress={()=> handleMarkerPress({latitude:40.979827846837544, longitude: 28.72117185018814})}
+        >
+        </Marker>
+        )}
       </MapView>
       <TouchableOpacity
         style={styles.goButton}
@@ -163,8 +233,8 @@ export default function MapScreen({ navigation }) {
             </View>
             <TouchableOpacity 
             style = {styles.localGuideButton}
-            onPress={console.log("rehbertusuna bastin anani sikeyim senin")}>
-          <Text style = {{fontFamily: "monospace", color: "white", fontWeight: "bold", fontSize: 16}}>rehbertusu</Text>
+            onPress = {() => Alert.alert("Rehber Tusu", "Tusa Basildi")}>
+          <Text style = {{fontFamily: "monospace", color: "white", fontWeight: "bold", fontSize: 16}}>Local Guides</Text>
         </TouchableOpacity>
         </View>
         </TouchableWithoutFeedback>
@@ -186,6 +256,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 20,
+    marginBottom: 65,
+    elevation: 10,
   },
   goButtonText: {
     fontSize: 18,
@@ -246,7 +318,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 20,
-    marginLeft: 152,
+    marginLeft: 156,
     marginTop:65,
     width: "%48",
     position: "absolute",
@@ -262,7 +334,7 @@ const styles = StyleSheet.create({
     backgroundColor: "darkseagreen",
     position: "absolute",
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     borderRadius: 20,
     marginTop: 84,
     marginLeft:48,
@@ -271,4 +343,14 @@ const styles = StyleSheet.create({
 
     //textseyleriyukarda
   },
+  calloutImage: {
+    width: 200,
+    height: 100,
+  },
+  calloutText: {
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+
 });

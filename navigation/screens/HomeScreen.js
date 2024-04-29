@@ -19,7 +19,7 @@ export default function HomeScreen() {
   const styles = StyleSheet.create({
     container: {
       flex: 1,   
-      alignItems: 'left',
+      alignItems: 'center',
       justifyContent: 'top',
       paddingHorizontal : 12,
       paddingTop: 5,
