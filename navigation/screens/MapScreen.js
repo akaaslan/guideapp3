@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Modal, Linking, TouchableWithoutFeedback, Alert, Image } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Marker, Polyline, Callout } from 'react-native-maps';
+import {DeviceMotion} from "expo-sensors"
 import * as Location from 'expo-location';
 import BosphorusIcon from "./../../icons/bosphorus.png"
 export default function MapScreen({ navigation }) {
@@ -11,6 +12,9 @@ export default function MapScreen({ navigation }) {
   const [estimatedDistance, setEstimatedDistance] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [destinationSelected, setDestinationSeleceted] = useState(false);
+  const [viewedMarker, setViewedMarker] = useState(null); 
+  const [viewStartTime, setViewStartTime] = useState(null); 
+
   const GOOGLE_MAPS_API_KEY = 'AIzaSyDkk9xmxjAS0BMU9ym4_e6LTdBlArakEnI'; // Google Maps API anahtarınızı buraya ekleyin
   
 
@@ -46,6 +50,78 @@ export default function MapScreen({ navigation }) {
     }
     setDestinationSeleceted(true);
   };
+
+  const handleMarkerView = (coordinate) => {
+    // Eğer aynı marker'a bakılıyorsa, başlangıç zamanını güncelle
+    if (coordinate === viewedMarker) {
+      setViewStartTime(Date.now());
+    } else {
+      // Değilse, yeni marker'ı ve başlangıç zamanını ayarla
+      setViewedMarker(coordinate);
+      setViewStartTime(Date.now());
+    }
+  };
+
+  useEffect(() => {
+    let timer;
+    if (viewStartTime) {
+      timer = setTimeout(() => {
+        // If the marker is still being viewed after 5 seconds, show the popup
+        if (viewedMarker && Date.now() - viewStartTime >= 5000) {
+          setShowPopup(true);
+        }
+      }, 5000);
+    }
+    return () => clearTimeout(timer);
+  }, [viewStartTime]);
+  
+  // Add this function to handle the user's orientation towards a marker
+  const handleOrientationChange = ({ heading }) => {
+    // Check if a marker is being viewed and update the start time accordingly
+    if (viewedMarker) {
+      Location.getHeadingAsync().then(({ magHeading }) => {
+        // Calculate the angle between user's heading and marker's direction
+        const angle = Math.abs(magHeading - heading);
+        // If the angle is less than 10 degrees, consider the user is facing towards the marker
+        if (angle < 10) {
+          handleMarkerView(viewedMarker); // Call handleMarkerView function to update the start time
+        }
+      });
+    }
+  };
+
+  const isMarkerCloseEnough = (markerCoordinate, currentLocation) => {
+    if (!currentLocation || !markerCoordinate) {
+      return false;
+    }
+    const { latitude: markerLat, longitude: markerLng } = markerCoordinate;
+    const { latitude: currentLat, longitude: currentLng } = currentLocation.coords;
+    const distance = Math.sqrt(Math.pow(markerLat - currentLat, 2) + Math.pow(markerLng - currentLng, 2)) * 111000; // 1 degrees = 111km
+    return distance <= 300; // Checks if the marker that's been looked is closer than 300 meters.
+  };
+
+  const subscribeToDeviceMotion = () => {
+    DeviceMotion.addListener(({ rotation }) => {
+      // Marker'a doğru bakılıyorsa, başlangıç zamanını güncelle
+      if (viewedMarker) {
+        // rotation.roll, rotation.pitch, rotation.yaw kullanarak cihazın oryantasyonunu kontrol edebilirsiniz
+        // Burada sadece yaw (y dikey eksende) kullanıldı
+        if (Math.abs(rotation.yaw) < 10) {
+          // Yeterince yakınsa, handleMarkerView fonksiyonunu çağır
+          if (isMarkerCloseEnough(viewedMarker, location)) {
+            handleMarkerView(viewedMarker);
+          }
+        }
+      }
+    });
+  };
+  
+  useEffect(() => {
+  subscribeToDeviceMotion();
+  return () => {
+    DeviceMotion.removeAllListeners();
+  };
+}, [viewedMarker]);
 
   const decodePolyline = (encoded) => {
     let points = [];
@@ -180,13 +256,11 @@ export default function MapScreen({ navigation }) {
         onPress={() => handleMarkerPress({latitude: 42.65714634396518, longitude:23.355303595910726})}>
         </Marker>
         )}
-        {isMarkerVisible({latitude: 40.979827846837544, longitude: 28.72117185018814 }, location)&& (
-        <Marker
-        coordinate={{longitude:40.979827846837544, latitude:28.72117185018814}}
-        title="Avcılar Central Mosque"
-        onPress={()=> handleMarkerPress({latitude:40.979827846837544, longitude: 28.72117185018814})}
-        >
-        </Marker>
+        {isMarkerVisible({latitude:40.980239681936496, longitude:28.72036129984934}, location)&&(
+          <Marker
+          coordinate= {{latitude: 40.980239681936496, longitude: 28.72036129984934}}
+          title = "Avcilar Baris Manco Culture Center"
+          onPress = {() => handleMarkerPress({latitude: 40.980239681936496, longitude: 28.72036129984934})}></Marker>
         )}
       </MapView>
       <TouchableOpacity

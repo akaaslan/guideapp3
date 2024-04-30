@@ -24,6 +24,11 @@
       },
       "package": "com.knasln.guideapp3"
     },
+    "config": {
+      "googleMaps": {
+        "apiKey" : "AIzaSyDkk9xmxjAS0BMU9ym4_e6LTdBlArakEnI"
+      }
+    },
     "web": {
       "favicon": "./assets/favicon.png"
     },
