@@ -178,7 +178,7 @@ export default function MapScreen({ navigation }) {
       <MapView
         provider={PROVIDER_GOOGLE}
         style={styles.map}
-        initialRegion={initialRegion}
+        region={initialRegion}
         showsUserLocation={true}
         showsMyLocationButton={true}
         
