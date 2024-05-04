@@ -1,22 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Modal, Linking, TouchableWithoutFeedback, Alert, Image } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Marker, Polyline, Callout } from 'react-native-maps';
-import {DeviceMotion} from "expo-sensors"
+import { useRoute } from '@react-navigation/native';
 import * as Location from 'expo-location';
 import BosphorusIcon from "./../../icons/bosphorus.png"
+
+
 export default function MapScreen({ navigation }) {
   const [location, setLocation] = useState(null);
   const [destination, setDestination] = useState(null);
   const [routeCoordinates, setRouteCoordinates] = useState([]);
   const [estimatedTime, setEstimatedTime] = useState(null);
-  const [estimatedDistance, setEstimatedDistance] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [destinationSelected, setDestinationSeleceted] = useState(false);
   const [viewedMarker, setViewedMarker] = useState(null); 
   const [viewStartTime, setViewStartTime] = useState(null); 
+  const [selectedName, setSelectedName] = useState(null);
+  const [markers, setMarkers] = useState([
+    { id: 1, title: "Blue Mosque", coordinate: { latitude: 41.0055, longitude: 28.9769 }, imageUri: 'https://trthaberstatic.cdn.wp.trt.com.tr/resimler/2032000/sultanahmet-camii-aa-2033022.jpg' },
+    { id: 2, title: "Bosphorus", coordinate: { latitude: 41.04654252347306, longitude: 29.03422380818258 }, imageUri: 'https://lh5.googleusercontent.com/proxy/w2dEY4MpQOYKVXAMSXXdG44ETq4Ac4aAO8cR0n2UQQQ01kSIJujFPIRcghHnSUBt2MbZ2Dg-qLFd7zwk0ab9FWmcfrsrEELWh5ckqX7agE7tLElhck-Ip45YOcrFeoPmFsfmSA' },
+    { id: 3, title: "Topkapı Palace", coordinate: { latitude: 41.0115, longitude: 28.9814 }, imageUri: 'https://istanbultarihi.ist/assets/uploads/files/cilt-8/topkapi-sarayi/3-topkapi-sarayi-gulhane-tarafindan.jpg' },
+    { id: 4, title: "Istiklal Avenue", coordinate: { latitude: 41.0283, longitude: 28.9731 }, imageUri: null },
+    { id: 5, title: "Technical University of Sofia", coordinate: { latitude: 42.65714634396518, longitude: 23.355303595910726 }, imageUri: null },
+    { id: 6, title: "Avcilar Baris Manco Culture Center", coordinate: { latitude: 40.980239681936496, longitude: 28.72036129984934 }, imageUri: null },
+  ]);
 
   const GOOGLE_MAPS_API_KEY = 'AIzaSyDkk9xmxjAS0BMU9ym4_e6LTdBlArakEnI'; // Google Maps API anahtarınızı buraya ekleyin
-  
+  const screenRoute = useRoute();
+
+  const handleCalloutPress = (title) => {
+    setSelectedName(title);
+    console.log(title);
+  }
 
   useEffect(() => {
     (async () => {
@@ -31,7 +46,7 @@ export default function MapScreen({ navigation }) {
     })();
   }, []);
 
-  const handleMarkerPress = async (coordinate) => {
+  const handleMarkerPress = async (coordinate,title) => {
     if (!location) {
       console.log("Location is not available yet.");
       return;
@@ -51,44 +66,39 @@ export default function MapScreen({ navigation }) {
     setDestinationSeleceted(true);
   };
 
-  const handleMarkerView = (coordinate) => {
-    // Eğer aynı marker'a bakılıyorsa, başlangıç zamanını güncelle
-    if (coordinate === viewedMarker) {
-      setViewStartTime(Date.now());
-    } else {
-      // Değilse, yeni marker'ı ve başlangıç zamanını ayarla
-      setViewedMarker(coordinate);
-      setViewStartTime(Date.now());
+  const isMarkerVisible = (markerCoordinate, currentLocation, maxDistance) => {
+    if (!currentLocation || !markerCoordinate) {
+      return false;
     }
+    const { latitude: markerLat, longitude: markerLng } = markerCoordinate;
+    const { latitude: currentLat, longitude: currentLng } = currentLocation.coords;
+    const distance = Math.sqrt(Math.pow(markerLat - currentLat, 2) + Math.pow(markerLng - currentLng, 2)) * 111000; // 1 derece = 111km
+    return distance <= maxDistance;
   };
 
   useEffect(() => {
-    let timer;
-    if (viewStartTime) {
-      timer = setTimeout(() => {
-        // If the marker is still being viewed after 5 seconds, show the popup
-        if (viewedMarker && Date.now() - viewStartTime >= 5000) {
-          setShowPopup(true);
-        }
-      }, 5000);
-    }
-    return () => clearTimeout(timer);
-  }, [viewStartTime]);
-  
-  // Add this function to handle the user's orientation towards a marker
-  const handleOrientationChange = ({ heading }) => {
-    // Check if a marker is being viewed and update the start time accordingly
-    if (viewedMarker) {
-      Location.getHeadingAsync().then(({ magHeading }) => {
-        // Calculate the angle between user's heading and marker's direction
-        const angle = Math.abs(magHeading - heading);
-        // If the angle is less than 10 degrees, consider the user is facing towards the marker
-        if (angle < 10) {
-          handleMarkerView(viewedMarker); // Call handleMarkerView function to update the start time
+    const checkNearbyMarkers = () => {
+      markers.forEach(marker => {
+        if (isMarkerVisible(marker.coordinate, location, 1000)) {
+          Alert.alert(
+            "You're close!",
+            `You're close to ${marker.title}! Do you want to see how you can go?`,
+            [
+              {
+                text: "No, I'm good.",
+                onPress: () => console.log("User pressed no. :("),
+                style: "cancel"
+              },
+              { text: "Yes, let's go!", onPress: () => handleMarkerPress(marker.coordinate, marker.title) }
+            ],
+            { cancelable: false }
+          );
         }
       });
-    }
-  };
+    };
+  
+    checkNearbyMarkers();
+  }, [location, markers]);
 
   const isMarkerCloseEnough = (markerCoordinate, currentLocation) => {
     if (!currentLocation || !markerCoordinate) {
@@ -96,32 +106,48 @@ export default function MapScreen({ navigation }) {
     }
     const { latitude: markerLat, longitude: markerLng } = markerCoordinate;
     const { latitude: currentLat, longitude: currentLng } = currentLocation.coords;
-    const distance = Math.sqrt(Math.pow(markerLat - currentLat, 2) + Math.pow(markerLng - currentLng, 2)) * 111000; // 1 degrees = 111km
-    return distance <= 300; // Checks if the marker that's been looked is closer than 300 meters.
+    const distance = Math.sqrt(Math.pow(markerLat - currentLat, 2) + Math.pow(markerLng - currentLng, 2)) * 111000; // 1 derece = 111km
+    return distance <= 100; // Yakınlık mesafesi 50 metreden az ise true döndür
   };
 
-  const subscribeToDeviceMotion = () => {
-    DeviceMotion.addListener(({ rotation }) => {
-      // Marker'a doğru bakılıyorsa, başlangıç zamanını güncelle
-      if (viewedMarker) {
-        // rotation.roll, rotation.pitch, rotation.yaw kullanarak cihazın oryantasyonunu kontrol edebilirsiniz
-        // Burada sadece yaw (y dikey eksende) kullanıldı
-        if (Math.abs(rotation.yaw) < 10) {
-          // Yeterince yakınsa, handleMarkerView fonksiyonunu çağır
-          if (isMarkerCloseEnough(viewedMarker, location)) {
-            handleMarkerView(viewedMarker);
-          }
+  useEffect(() => {
+    const checkNearbyMarkers = () => {
+      markers.forEach(marker => {
+        if (isMarkerCloseEnough(marker.coordinate, location)) {
+          setViewedMarker(marker); // Yakınındaki markerı işaret et
+          setViewStartTime(Date.now()); // Başlangıç zamanını ayarla
         }
-      }
-    });
-  };
+      });
+    };
+  
+    checkNearbyMarkers();
+  }, [location, markers]);
   
   useEffect(() => {
-  subscribeToDeviceMotion();
-  return () => {
-    DeviceMotion.removeAllListeners();
-  };
-}, [viewedMarker]);
+    let timer;
+    if (viewStartTime) {
+      timer = setTimeout(() => {
+        // Eğer marker hala görüntüleniyorsa ve 15 saniye geçtiyse, popup'ı göster
+        if (viewedMarker && Date.now() - viewStartTime >= 15000) {
+          Alert.alert(
+            "Hmm, Interesting.",
+            `It looks like you have interest in ${viewedMarker.title}! Do you want to learn more?`,
+            [
+              {
+                text: "No, I'm good.",
+                onPress: () => console.log("User pressed no. :("),
+                style: "cancel"
+              },
+              { text: "Yes, I'm astonished!", onPress: () => console.log("User pressed yes!") }
+            ],
+            { cancelable: false }
+          );
+        }
+      }, 15000);
+    }
+    return () => clearTimeout(timer);
+  }, [viewStartTime, viewedMarker]);
+  
 
   const decodePolyline = (encoded) => {
     let points = [];
@@ -153,19 +179,6 @@ export default function MapScreen({ navigation }) {
     return points;
   };
 
-  //this code decodes polylines coming from Google Maps API and implements into my map. 
-  const isMarkerVisible = (markerCoordinate, currentLocation) => {
-    if (!currentLocation || !markerCoordinate) {
-      return false;
-    }
-    const { latitude: markerLat, longitude: markerLng } = markerCoordinate;
-    const { latitude: currentLat, longitude: currentLng } = currentLocation.coords;
-    const distance = Math.sqrt(Math.pow(markerLat - currentLat, 2) + Math.pow(markerLng - currentLng, 2)) * 111000; // 1 degrees = 111km
-
-    return distance <= 6000;
-  };
-  //calculates the distance between user location and marker then makes it shown if the marker is closer than 6 kilometers.
-
   let initialRegion = {
     latitude: location ? location.coords.latitude : 40.9819,
     longitude: location ? location.coords.longitude : 28.7178,
@@ -181,7 +194,6 @@ export default function MapScreen({ navigation }) {
         region={initialRegion}
         showsUserLocation={true}
         showsMyLocationButton={true}
-        
       >
         {destination && (
           <Polyline
@@ -190,78 +202,23 @@ export default function MapScreen({ navigation }) {
             strokeWidth={4}
           />
         )}
-        {isMarkerVisible({ latitude: 41.0055, longitude: 28.9769 }, location) && (
-        <Marker
-          coordinate={{ latitude: 41.0055, longitude: 28.9769 }}
-          title="Blue Mosque"
-          onPress={() => handleMarkerPress({ latitude: 41.0055, longitude: 28.9769 })}
-
-          >
-          <Callout>
-            <View>
-              <Image style={styles.calloutImage} source={{ uri: 'https://trthaberstatic.cdn.wp.trt.com.tr/resimler/2032000/sultanahmet-camii-aa-2033022.jpg' }} />
-              <Text style={styles.calloutText}>Blue Mosque</Text>
-            </View>
-          </Callout>
-        </Marker>
-        )}
-        {isMarkerVisible({latitude: 41.04654252347306, longitude: 29.03422380818258 }, location)&& (
-        <Marker 
-        coordinate={{ latitude: 41.04654252347306, longitude: 29.03422380818258 }}
-        title="Bosphorus"
-        onPress={() => handleMarkerPress({ latitude: 41.04654252347306, longitude: 29.03422380818258 })}>
-          
-        <Callout>
-        <View>
-              <Image style={styles.calloutImage} source={{ uri: 'https://lh5.googleusercontent.com/proxy/w2dEY4MpQOYKVXAMSXXdG44ETq4Ac4aAO8cR0n2UQQQ01kSIJujFPIRcghHnSUBt2MbZ2Dg-qLFd7zwk0ab9FWmcfrsrEELWh5ckqX7agE7tLElhck-Ip45YOcrFeoPmFsfmSA' }} />
-              <Text style={styles.calloutText}>Bosphorus</Text>
-            </View>
-        </Callout>
-        </Marker>
-        )}
-
-        {isMarkerVisible({latitude: 41.0115, longitude: 28.9814 }, location)&& (
-        <Marker 
-        coordinate={{ latitude: 41.0115, longitude: 28.9814 }}
-        title="Topkapı Palace"
-        onPress={() => handleMarkerPress({ latitude: 41.0115, longitude: 28.9814 })}>
-          
-        <Callout>
-        <View>
-              <Image style={styles.calloutImage} source={{ uri: 'https://istanbultarihi.ist/assets/uploads/files/cilt-8/topkapi-sarayi/3-topkapi-sarayi-gulhane-tarafindan.jpg' }} />
-              <Text style={styles.calloutText}>Topkapı Palace</Text>
-            </View>
-        </Callout>
-        </Marker>
-        )}
-
-        {isMarkerVisible({latitude: 41.0283, longitude: 28.9731 }, location)&& (
-        <Marker
-        coordinate={{ latitude: 41.0283, longitude: 28.9731 }}
-        title="Istiklal Avenue"
-        onPress={() => handleMarkerPress({ latitude: 41.0283, longitude: 28.9731 })}>
-          
-        <Callout>
-        <View>
-              <Image style={styles.calloutImage} source={{BosphorusIcon}} />
-              <Text style={styles.calloutText}>İstiklal Caddesi</Text>
-            </View>
-        </Callout>
-        </Marker>
-        )}
-        {isMarkerVisible({latitude: 42.65714634396518, longitude: 23.355303595910726 }, location)&& (
-        <Marker
-        coordinate={{latitude: 42.65714634396518, longitude:23.355303595910726}}
-        title = "Technical University of Sofia"
-        onPress={() => handleMarkerPress({latitude: 42.65714634396518, longitude:23.355303595910726})}>
-        </Marker>
-        )}
-        {isMarkerVisible({latitude:40.980239681936496, longitude:28.72036129984934}, location)&&(
+        {markers.map(marker => (
           <Marker
-          coordinate= {{latitude: 40.980239681936496, longitude: 28.72036129984934}}
-          title = "Avcilar Baris Manco Culture Center"
-          onPress = {() => handleMarkerPress({latitude: 40.980239681936496, longitude: 28.72036129984934})}></Marker>
-        )}
+            key={marker.id}
+            coordinate={marker.coordinate}
+            title={marker.title}
+            onPress={() => handleMarkerPress(marker.coordinate)}
+          >
+            <Callout
+              onPress={() => handleCalloutPress(marker.title)}
+            >
+              <View>
+                <Image style={styles.calloutImage} source={{ uri: marker.imageUri }} />
+                <Text style={styles.calloutText}>{marker.title}</Text>
+              </View>
+            </Callout>
+          </Marker>
+        ))}
       </MapView>
       <TouchableOpacity
         style={styles.goButton}
@@ -270,29 +227,32 @@ export default function MapScreen({ navigation }) {
         <Text style={styles.goButtonText}>How can I go?</Text>
       </TouchableOpacity>
       <Modal
-      animationType='fade'
-      transparent= {true}
-      visible = {estimatedTime !== null}
-      onRequestClose={() => setEstimatedTime(null)}>
-        <TouchableWithoutFeedback onPress={() => {setEstimatedTime(null)
-        setRouteCoordinates([]);
-        setEstimatedTime(null);
-      setDestinationSeleceted(false);}}>
-        <View style = {styles.centeredView}>
-          <View style = {styles.modalView}>
+        animationType='fade'
+        transparent= {true}
+        visible = {estimatedTime !== null}
+        onRequestClose={() => setEstimatedTime(null)}
+      >
+        <TouchableWithoutFeedback onPress={() => {
+          setEstimatedTime(null);
+          setRouteCoordinates([]);
+          setEstimatedTime(null);
+          setDestinationSeleceted(false);
+        }}>
+          <View style = {styles.centeredView}>
+            <View style = {styles.modalView}>
               <Text style = {styles.modalText}>Estimated time: {estimatedTime}</Text>
-              <View
-              style = {{flexDirection : "row", flex: 1}}>
-              <TouchableOpacity
-                style = {styles.closeButton}
-                onPress= {() => {
-                  setEstimatedTime(null);
-                setRouteCoordinates([]);
-              setEstimatedTime(null);
-            setDestinationSeleceted(false);}}
-              >
-                <Text style = {styles.closeButtonText}>Close</Text>
-              </TouchableOpacity>
+              <View style = {{ flexDirection: "row", flex: 1 }}>
+                <TouchableOpacity
+                  style = {styles.closeButton}
+                  onPress= {() => {
+                    setEstimatedTime(null);
+                    setRouteCoordinates([]);
+                    setEstimatedTime(null);
+                    setDestinationSeleceted(false);
+                  }}
+                >
+                  <Text style = {styles.closeButtonText}>Close</Text>
+                </TouchableOpacity>
               </View>
               <TouchableOpacity
                 style={styles.startButton}
@@ -306,13 +266,13 @@ export default function MapScreen({ navigation }) {
               </TouchableOpacity>
             </View>
             <TouchableOpacity 
-            style = {styles.localGuideButton}
-            onPress = {() => Alert.alert("Rehber Tusu", "Tusa Basildi")}>
-          <Text style = {{fontFamily: "monospace", color: "white", fontWeight: "bold", fontSize: 16}}>Local Guides</Text>
-        </TouchableOpacity>
-        </View>
+              style = {styles.localGuideButton}
+              onPress = {() => Alert.alert("Rehber Tusu", "Tusa Basildi")}
+            >
+              <Text style = {{fontFamily: "monospace", color: "white", fontWeight: "bold", fontSize: 16}}>Local Guides</Text>
+            </TouchableOpacity>
+          </View>
         </TouchableWithoutFeedback>
-        
       </Modal>
     </View>
   );
@@ -360,7 +320,8 @@ const styles = StyleSheet.create({
     elevation: 20,
     position: "absolute",
     width: "80%",
-    height: 130
+    height: 130,
+    width: 350,
 
   },
   modalText: {
@@ -376,55 +337,57 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 20,
-    marginTop:10,
-    marginLeft:62,
-    width: "%48",
-    position: "absolute",
+    elevation: 10,
+    marginTop:8,
+    marginBottom: 10,
+    marginLeft: 220,
+    position: "relative",
+    top: 5,
   },
   closeButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
+    fontFamily: "monospace",
     color: 'white',
-    fontFamily: "monospace"
+    alignSelf: 'center',
   },
   startButton: {
     backgroundColor: 'darkseagreen',
-    paddingVertical: 10,
+    paddingVertical: 11,
     paddingHorizontal: 20,
     borderRadius: 20,
-    marginLeft: 156,
-    marginTop:65,
-    width: "%48",
-    position: "absolute",
-    alignSelf:"baseline"
+    elevation: 10,
+    marginBottom: 10,
+    position: 'absolute',
+    bottom: 10,
+    left: 175,
   },
   startButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
+    fontFamily: "monospace",
     color: 'white',
-    fontFamily: "monospace"
+    alignSelf: 'center',
   },
   localGuideButton: {
-    backgroundColor: "darkseagreen",
-    position: "absolute",
+    backgroundColor: 'darkseagreen',
     paddingVertical: 10,
-    paddingHorizontal: 15,
+    paddingHorizontal: 20,
     borderRadius: 20,
-    marginTop: 84,
-    marginLeft:48,
-    justifyContent: "center",
-    alignSelf:"baseline"
-
-    //textseyleriyukarda
+    elevation: 10,
+    marginBottom: 600,
+    position: 'absolute',
+    bottom: 17,
+    right: 200,
   },
   calloutImage: {
-    width: 200,
+    width: 150,
     height: 100,
+    borderRadius: 10,
   },
   calloutText: {
     textAlign: 'center',
-    fontSize: 16,
     fontWeight: 'bold',
-  },
-
+    fontFamily: "monospace",
+  }
 });

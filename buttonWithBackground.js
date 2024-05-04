@@ -4,10 +4,15 @@ import { LinearGradient } from "expo-linear-gradient";
 import * as Speech from 'expo-speech';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { FontAwesome } from '@expo/vector-icons';
+import { useNavigation } from "@react-navigation/native";
+import { Button } from "react-native-web";
 
 const ButtonWithBackground = props => {
+  const navigation= useNavigation();
+  const [selectedLocation, setSelectedLocation] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [summary, setSummary] = useState("");
+
   
   // Vikipedi'den veri çekme fonksiyonu
   const fetchData = async (place) => {
@@ -64,11 +69,16 @@ const ButtonWithBackground = props => {
               <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
                 <Text style={styles.closeButtonText}>Close</Text>
               </TouchableOpacity>
+
+              
             </ScrollView>
           </View>
+          
         </Modal>
       </LinearGradient>
     </TouchableOpacity>
+
+    
   );
 }
 
@@ -158,30 +168,50 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center"
   },
+  showMaps: {
+    backgroundColor: "darkseagreen",
+    zIndex: 1,
+    borderRadius: 10,
+    padding: 10,
+    elevation: 2,
+    marginTop: 640,
+    marginLeft: 196, 
+    width: 181,
+  
+  },
 });
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <ButtonWithBackground
+    <ButtonWithBackground
         text= "Sultan Ahmed Mosque"
         image="https://trthaberstatic.cdn.wp.trt.com.tr/resimler/2032000/sultanahmet-camii-aa-2033022.jpg"
-      />
+        onPress={() => handleShowOnMaps("Sultan Ahmed Mosque")}
+        />
       <ButtonWithBackground
         text= "Bosphorus"
         image="https://lh5.googleusercontent.com/proxy/w2dEY4MpQOYKVXAMSXXdG44ETq4Ac4aAO8cR0n2UQQQ01kSIJujFPIRcghHnSUBt2MbZ2Dg-qLFd7zwk0ab9FWmcfrsrEELWh5ckqX7agE7tLElhck-Ip45YOcrFeoPmFsfmSA"
-      />
+        onPress = {() => setSelectedLocation("Bosphorus")}
+        />
+        <ButtonWithBackground
+        text = "Avcilar Baris Manco Cultural Center"
+        image = "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/07/1c/96/27/very-nice-center.jpg?w=1200&h=1200&s=1"
+        />
       <ButtonWithBackground
         text= "Topkapı Palace"
         image="https://istanbultarihi.ist/assets/uploads/files/cilt-8/topkapi-sarayi/3-topkapi-sarayi-gulhane-tarafindan.jpg"
+        onPress = {() => setSelectedLocation("Topkapı Palace")}
         />
         <ButtonWithBackground
         text= "İstiklal Caddesi"
         image="https://i.neredekal.com/i/neredekal/75/585x300/607d72f6a26c8a5c640267bd"
+        onPress = {() => setSelectedLocation("Istiklal Avenue")}
         />
         <ButtonWithBackground
         text= "Technical University of Sofia"
         image= "https://lh5.googleusercontent.com/proxy/dis_ROCaIxt6jwr0jlE2Gv9eXuLp2zE_YNE51WLWZj7FNAPRbsQVNZ8hFSMlKUZuI0dYMD7dqdT_VaY92xnBKOsBNg"
+        onPress = {() => setSelectedLocation("Technical University of Sofia")}
         />
     </View>
   );
