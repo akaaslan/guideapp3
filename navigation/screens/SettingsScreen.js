@@ -1,5 +1,5 @@
 import * as React from "react";
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View, Text, Switch } from "react-native";
 
 export default function SettingsScreen() {
     return (
@@ -7,11 +7,10 @@ export default function SettingsScreen() {
             <Text
             style = {{
                 fontSize: 20,
-                fontWeight: "bold",
                 textAlign: "center",
                 marginTop: 200,
                 fontFamily: "monospace",
-                fontWeight: "Bold"
+                fontWeight: "bold"
             }}>Settings</Text>
         </View>
     )

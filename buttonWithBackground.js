@@ -5,7 +5,7 @@ import * as Speech from 'expo-speech';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from "@react-navigation/native";
-import { Button } from "react-native-web";
+import { Button } from "react-native";
 
 const ButtonWithBackground = props => {
   const navigation= useNavigation();
@@ -46,7 +46,7 @@ const ButtonWithBackground = props => {
 
   return (
     <TouchableOpacity onPress={handlePress}>
-      <LinearGradient colors={['olivedrab', 'rosybrown']} style={styles.button}>
+      <LinearGradient colors={['black', 'darkseagreen']} style={styles.button}>
         <Image source={{uri: props.image}} style={styles.image} resizeMode="cover" />
         <Text style={styles.text}>{props.text}</Text>
         <Modal

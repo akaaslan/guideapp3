@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Modal, Linking, TouchableWithoutFeedback, Alert, Image } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, Modal, Linking, TouchableWithoutFeedback, Alert, Image, ScrollView, Switch } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Marker, Polyline, Callout } from 'react-native-maps';
 import { useRoute } from '@react-navigation/native';
 import * as Location from 'expo-location';
@@ -7,6 +7,8 @@ import BosphorusIcon from "./../../icons/bosphorus.png"
 
 
 export default function MapScreen({ navigation }) {
+  const mapRef = useRef(null);
+  const [isEnabled, setIsEnabled] = useState(false);
   const [location, setLocation] = useState(null);
   const [destination, setDestination] = useState(null);
   const [routeCoordinates, setRouteCoordinates] = useState([]);
@@ -16,21 +18,243 @@ export default function MapScreen({ navigation }) {
   const [viewedMarker, setViewedMarker] = useState(null); 
   const [viewStartTime, setViewStartTime] = useState(null); 
   const [selectedName, setSelectedName] = useState(null);
+  const [nearestMarkers, setNearestMarkers] = useState([]);
   const [markers, setMarkers] = useState([
     { id: 1, title: "Blue Mosque", coordinate: { latitude: 41.0055, longitude: 28.9769 }, imageUri: 'https://trthaberstatic.cdn.wp.trt.com.tr/resimler/2032000/sultanahmet-camii-aa-2033022.jpg' },
     { id: 2, title: "Bosphorus", coordinate: { latitude: 41.04654252347306, longitude: 29.03422380818258 }, imageUri: 'https://lh5.googleusercontent.com/proxy/w2dEY4MpQOYKVXAMSXXdG44ETq4Ac4aAO8cR0n2UQQQ01kSIJujFPIRcghHnSUBt2MbZ2Dg-qLFd7zwk0ab9FWmcfrsrEELWh5ckqX7agE7tLElhck-Ip45YOcrFeoPmFsfmSA' },
     { id: 3, title: "Topkapı Palace", coordinate: { latitude: 41.0115, longitude: 28.9814 }, imageUri: 'https://istanbultarihi.ist/assets/uploads/files/cilt-8/topkapi-sarayi/3-topkapi-sarayi-gulhane-tarafindan.jpg' },
     { id: 4, title: "Istiklal Avenue", coordinate: { latitude: 41.0283, longitude: 28.9731 }, imageUri: null },
     { id: 5, title: "Technical University of Sofia", coordinate: { latitude: 42.65714634396518, longitude: 23.355303595910726 }, imageUri: null },
-    { id: 6, title: "Avcilar Baris Manco Culture Center", coordinate: { latitude: 40.980239681936496, longitude: 28.72036129984934 }, imageUri: null },
+    { id: 6, title: "Baris Manco Culture Center", coordinate: { latitude: 40.980239681936496, longitude: 28.72036129984934 }, imageUri: null },
+    { id: 7, title: "Tüpraş Stadium", coordinate: {latitude: 41.03939288554953, longitude: 28.994486794538503}, imageUri: null}
   ]);
 
   const GOOGLE_MAPS_API_KEY = 'AIzaSyDkk9xmxjAS0BMU9ym4_e6LTdBlArakEnI'; // Google Maps API anahtarınızı buraya ekleyin
   const screenRoute = useRoute();
 
+  const mapDark = [
+    {
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#242f3e"
+        }
+      ]
+    },
+    {
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#746855"
+        }
+      ]
+    },
+    {
+      "elementType": "labels.text.stroke",
+      "stylers": [
+        {
+          "color": "#242f3e"
+        }
+      ]
+    },
+    {
+      "featureType": "administrative.locality",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#d59563"
+        }
+      ]
+    },
+    {
+      "featureType": "poi",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#d59563"
+        }
+      ]
+    },
+    {
+      "featureType": "poi.park",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#263c3f"
+        }
+      ]
+    },
+    {
+      "featureType": "poi.park",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#6b9a76"
+        }
+      ]
+    },
+    {
+      "featureType": "road",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#38414e"
+        }
+      ]
+    },
+    {
+      "featureType": "road",
+      "elementType": "geometry.stroke",
+      "stylers": [
+        {
+          "color": "#212a37"
+        }
+      ]
+    },
+    {
+      "featureType": "road",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#9ca5b3"
+        }
+      ]
+    },
+    {
+      "featureType": "road.highway",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#746855"
+        }
+      ]
+    },
+    {
+      "featureType": "road.highway",
+      "elementType": "geometry.stroke",
+      "stylers": [
+        {
+          "color": "#1f2835"
+        }
+      ]
+    },
+    {
+      "featureType": "road.highway",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#f3d19c"
+        }
+      ]
+    },
+    {
+      "featureType": "transit",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#2f3948"
+        }
+      ]
+    },
+    {
+      "featureType": "transit.station",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#d59563"
+        }
+      ]
+    },
+    {
+      "featureType": "water",
+      "elementType": "geometry",
+      "stylers": [
+        {
+          "color": "#17263c"
+        }
+      ]
+    },
+    {
+      "featureType": "water",
+      "elementType": "labels.text.fill",
+      "stylers": [
+        {
+          "color": "#515c6d"
+        }
+      ]
+    },
+    {
+      "featureType": "water",
+      "elementType": "labels.text.stroke",
+      "stylers": [
+        {
+          "color": "#17263c"
+        }
+      ]
+    }
+  ]
+  const mapStandard = [[]]
+  const [mapStyle, setMapStyle] = useState(mapStandard);
+  useEffect(() => {
+    const currentDate = new Date();
+    const currentHour = currentDate.getHours();
+    let style = mapStandard; 
+    if (currentHour >= 20 || currentHour < 6) {
+      style = mapDark;
+    }
+    setMapStyle(style);
+  }, []);
+
   const handleCalloutPress = (title) => {
     setSelectedName(title);
     console.log(title);
+    if (title === "Tüpraş Stadium") {
+      Alert.alert(
+        "Confirmation",
+        "Do you want to visit the event page for Tüpraş Stadium?",
+        [
+          {
+            text: "Visit",
+            onPress: () => {
+              Linking.openURL("https://www.passo.com.tr/en/etkinlik-grubu/stadyum-konserleri/702613");
+            }
+          },
+          {
+            text: "No, thanks.",
+            style: "cancel",
+            },
+        ]
+      );
+    } else if (title === "Baris Manco Culture Center") {
+      Alert.alert(
+        "Confirmation",
+        "Would you like to see what is the upcoming events for this center?",
+        [{
+          text: "Of course!",
+          onPress: () => {
+            Linking.openURL("https://www.avcilar.bel.tr/etkinlikler.php");
+          }
+        },
+        {
+          text: "No, thanks.",
+          style: "cancel",
+          },
+      ]
+      )
+    }  else {
+      // Farklı bir marker için Wikipedia sayfasına yönlendir
+      navigateToWikipedia(title);
+    }
+  }
+
+  const navigateToWikipedia = (title) => {
+    // Marker başlığından boşlukları kaldırarak Wikipedia URL'sini oluştur
+    const wikipediaTitle = title.replace(/\s+/g, '_');
+    const wikipediaUrl = `https://en.wikipedia.org/wiki/${wikipediaTitle}`;
+  
+    // URL'yi aç
+    Linking.openURL(wikipediaUrl)
+      .catch(err => console.error('Error opening Wikipedia page:', err));
   }
 
   useEffect(() => {
@@ -45,6 +269,8 @@ export default function MapScreen({ navigation }) {
       setLocation(location);
     })();
   }, []);
+
+  
 
   const handleMarkerPress = async (coordinate,title) => {
     if (!location) {
@@ -64,6 +290,7 @@ export default function MapScreen({ navigation }) {
       console.error('Error fetching directions:', error);
     }
     setDestinationSeleceted(true);
+    focusOnMarker(coordinate);
   };
 
   const isMarkerVisible = (markerCoordinate, currentLocation, maxDistance) => {
@@ -74,6 +301,26 @@ export default function MapScreen({ navigation }) {
     const { latitude: currentLat, longitude: currentLng } = currentLocation.coords;
     const distance = Math.sqrt(Math.pow(markerLat - currentLat, 2) + Math.pow(markerLng - currentLng, 2)) * 111000; // 1 derece = 111km
     return distance <= maxDistance;
+  };
+
+  const findNearestMarkers = () => {
+    if (!location) {
+      console.log("Location is not available yet.");
+      return;
+    }
+    const sortedMarkers = markers
+      .map(marker => {
+        const distance = Math.sqrt(
+          Math.pow(marker.coordinate.latitude - location.coords.latitude, 2) +
+          Math.pow(marker.coordinate.longitude - location.coords.longitude, 2)
+        ) * 111000; // 1 derece = 111km
+        return { ...marker, distance };
+      })
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, 3);
+  
+    setModalVisible(true);
+    setNearestMarkers(sortedMarkers);
   };
 
   useEffect(() => {
@@ -107,7 +354,7 @@ export default function MapScreen({ navigation }) {
     const { latitude: markerLat, longitude: markerLng } = markerCoordinate;
     const { latitude: currentLat, longitude: currentLng } = currentLocation.coords;
     const distance = Math.sqrt(Math.pow(markerLat - currentLat, 2) + Math.pow(markerLng - currentLng, 2)) * 111000; // 1 derece = 111km
-    return distance <= 100; // Yakınlık mesafesi 50 metreden az ise true döndür
+    return distance <= 300; // Yakınlık mesafesi 50 metreden az ise true döndür
   };
 
   useEffect(() => {
@@ -122,10 +369,18 @@ export default function MapScreen({ navigation }) {
   
     checkNearbyMarkers();
   }, [location, markers]);
+
+  const goToWikipedia = () => {
+    if (viewedMarker) {
+      const title = viewedMarker.title.replace(/\s+/g, '_'); // Boşlukları alt çizgi ile değiştir
+      const wikipediaUrl = `https://en.wikipedia.org/wiki/${viewedMarker.title}`;
+      Linking.openURL(wikipediaUrl);
+    }
+  };
   
   useEffect(() => {
     let timer;
-    if (viewStartTime) {
+    if (isEnabled && viewStartTime) { // isEnabled true ve viewStartTime varsa, useEffect çalışacak
       timer = setTimeout(() => {
         // Eğer marker hala görüntüleniyorsa ve 15 saniye geçtiyse, popup'ı göster
         if (viewedMarker && Date.now() - viewStartTime >= 15000) {
@@ -138,15 +393,26 @@ export default function MapScreen({ navigation }) {
                 onPress: () => console.log("User pressed no. :("),
                 style: "cancel"
               },
-              { text: "Yes, I'm astonished!", onPress: () => console.log("User pressed yes!") }
+              { text: "Yes, I'm astonished!", onPress: () => {goToWikipedia()} } // goToWikipedia fonksiyonunu çağırmak için parantez eklenmeli
             ],
             { cancelable: false }
           );
         }
       }, 15000);
     }
+
+    // useEffect'den dönen fonksiyon bir temizleme fonksiyonudur, component unmount edildiğinde çalışır
     return () => clearTimeout(timer);
-  }, [viewStartTime, viewedMarker]);
+  }, [isEnabled, viewStartTime, viewedMarker]);
+
+  const focusOnMarker = (markerCoordinate) => {
+    if (mapRef.current && markerCoordinate) {
+      mapRef.current.animateCamera({
+        center: markerCoordinate,
+        zoom: 13, 
+      });
+    }
+  };
   
 
   const decodePolyline = (encoded) => {
@@ -189,6 +455,8 @@ export default function MapScreen({ navigation }) {
   return (
     <View style={{ flex: 1 }}>
       <MapView
+      customMapStyle={mapStyle}
+      ref = {mapRef}
         provider={PROVIDER_GOOGLE}
         style={styles.map}
         region={initialRegion}
@@ -220,6 +488,42 @@ export default function MapScreen({ navigation }) {
           </Marker>
         ))}
       </MapView>
+      <TouchableOpacity
+  style={styles.searchButton}
+  onPress={findNearestMarkers}
+>
+  <Text style={styles.searchButtonText}>Search Nearby</Text>
+</TouchableOpacity>
+<Modal
+  animationType='fade'
+  transparent={true}
+  visible={modalVisible}
+  onRequestClose={() => setModalVisible(false)}
+>
+  <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+    <View style={styles.centeredView}>
+      <View style={styles.modalNearbyView}>
+        <ScrollView>
+        <Text style={styles.modalText}>Nearest Locations:</Text>
+        {nearestMarkers.map(marker => (
+  <TouchableOpacity
+    key={marker.id}
+    style={{ flexDirection: "row", alignItems: "center", marginBottom: 5 }}
+    onPress={() => handleMarkerPress(marker.coordinate, marker.title)}
+  >
+    <Text style={{ fontFamily: "monospace", marginRight: 5 }}>{marker.title}</Text>
+    <Text style={{ fontFamily: "monospace", color: "gray" }}>
+      ({marker.distance > 1000 ? `${(marker.distance / 1000).toFixed(2)} km` : `${marker.distance.toFixed(2)} mt`})
+    </Text>
+  </TouchableOpacity>
+))}
+
+        
+        </ScrollView>
+      </View>
+    </View>
+  </TouchableWithoutFeedback>
+</Modal>
       <TouchableOpacity
         style={styles.goButton}
         onPress={() => handleMarkerPress(destination)}
@@ -254,6 +558,12 @@ export default function MapScreen({ navigation }) {
                   <Text style = {styles.closeButtonText}>Close</Text>
                 </TouchableOpacity>
               </View>
+              <TouchableOpacity 
+              style = {styles.localGuideButton}
+              onPress = {() => Alert.alert("Rehber Tusu", "Tusa Basildi")}
+            >
+              <Text style = {{fontFamily: "monospace", color: "white", fontWeight: "bold", fontSize: 16}}>Local Guides</Text>
+            </TouchableOpacity>
               <TouchableOpacity
                 style={styles.startButton}
                 onPress={() => {
@@ -265,15 +575,12 @@ export default function MapScreen({ navigation }) {
                 <Text style={styles.startButtonText}>Go</Text>
               </TouchableOpacity>
             </View>
-            <TouchableOpacity 
-              style = {styles.localGuideButton}
-              onPress = {() => Alert.alert("Rehber Tusu", "Tusa Basildi")}
-            >
-              <Text style = {{fontFamily: "monospace", color: "white", fontWeight: "bold", fontSize: 16}}>Local Guides</Text>
-            </TouchableOpacity>
           </View>
         </TouchableWithoutFeedback>
       </Modal>
+      <View>
+
+      </View>
     </View>
   );
 }
@@ -292,9 +599,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginBottom: 65,
     elevation: 10,
+    left: 22,
   },
   goButtonText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     fontFamily: "monospace"
   },
@@ -353,7 +661,7 @@ const styles = StyleSheet.create({
   },
   startButton: {
     backgroundColor: 'darkseagreen',
-    paddingVertical: 11,
+    paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 20,
     elevation: 10,
@@ -375,10 +683,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 20,
     elevation: 10,
-    marginBottom: 600,
+    marginBottom: 10,
     position: 'absolute',
-    bottom: 17,
-    right: 200,
+    bottom: 10,
+    left: 14,
   },
   calloutImage: {
     width: 150,
@@ -389,5 +697,40 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: 'bold',
     fontFamily: "monospace",
-  }
+  },
+  searchButton: {
+    position: 'absolute',
+    alignSelf: 'center',
+    backgroundColor: 'darkseagreen',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    elevation: 10,
+    bottom: 85,
+    left: 197,
+  },
+  searchButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    fontFamily: "monospace"
+  },
+  modalNearbyView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 15,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 20,
+    position: "absolute",
+    width: "80%",
+    height: 150,
+    width: 350,
+  },
 });

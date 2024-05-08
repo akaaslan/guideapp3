@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TouchableOpacity, Alert, Button, Text, Image, Modal, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from './navigation/screens/HomeScreen';
@@ -16,6 +16,7 @@ const Tab = createBottomTabNavigator();
 
 
 export default function App() {
+  
   return (
     <NavigationContainer>
       <Tab.Navigator
@@ -39,7 +40,10 @@ export default function App() {
           name="Home" 
           component={HomeScreen} 
           options={{
-            title: 'GuideApp',
+            headerRightContainerStyle: {
+              marginRight: 10  
+            },
+            title: 'GuideApp',  
             headerStyle: {
               backgroundColor: "darkseagreen",
             },
@@ -60,6 +64,19 @@ export default function App() {
           component={MapScreen} 
           options={{
             title: 'GuideApp',
+            headerRight: () => (
+              <TouchableOpacity 
+              style= {{
+                backgroundColor: "darkseagreen",
+                padding: 10,
+                marginRight: 10,
+              }}
+              onPress={() => navigation.navigate('Map', { toggleSearch: toggleSearch })}
+               >
+                <FontAwesome name="search" size={24} color="black" />
+                </TouchableOpacity>
+
+          ),
             headerStyle: {
               backgroundColor: "darkseagreen",
             },
@@ -75,7 +92,26 @@ export default function App() {
             }
           }}
         />
-        
+        <Tab.Screen 
+          name="Settings" 
+          component={SettingsScreen} 
+          options={{
+            title: 'GuideApp',
+            headerStyle: {
+              backgroundColor: "darkseagreen",
+            },
+            headerTitleStyle: {
+              fontFamily: 'monospace',
+              fontWeight: "bold"
+            },
+            tabBarLabel: 'Settings', 
+            tabBarIcon: () =>  <Ionicons name="settings-sharp" size={24} color="black" />,    
+            tabBarLabelStyle: {
+              fontFamily: 'monospace',
+              fontWeight: "bold",
+            }
+          }}
+        />
       </Tab.Navigator>
     </NavigationContainer>
   );
