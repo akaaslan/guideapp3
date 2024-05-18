@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import ButtonWithBackground from "./../../buttonWithBackground";
+import locations from "../../Locations"
 
 export default function HomeScreen() {
     return (

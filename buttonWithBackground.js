@@ -6,12 +6,35 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from "@react-navigation/native";
 import { Button } from "react-native";
+import { ToastAndroid } from "react-native";
+import locations from "./Locations"
 
 const ButtonWithBackground = props => {
   const navigation= useNavigation();
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [summary, setSummary] = useState("");
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  const addToFavorites = () => {
+    setIsFavorite(true);
+    console.log("Added to favorites:", props.text);
+    ToastAndroid.showWithGravity(
+      `${props.text} has been added to favorites!`,
+      ToastAndroid.SHORT,
+      ToastAndroid.BOTTOM,
+    );
+    console.log(isFavorite, props.text);
+  };
+
+  const removeFromFavorites = () => {
+    setIsFavorite(false);
+    ToastAndroid.showWithGravity(
+      `${props.text} has been removed from favorites.`,
+      ToastAndroid.SHORT,
+      ToastAndroid.BOTTOM,
+    )
+  };
 
   
   // Vikipedi'den veri çekme fonksiyonu
@@ -44,9 +67,11 @@ const ButtonWithBackground = props => {
     Linking.openURL(`https://en.wikipedia.org/wiki/${props.text}`);
   };
 
-  return (
+  return ( <View>
+    <View>
     <TouchableOpacity onPress={handlePress}>
       <LinearGradient colors={['black', 'darkseagreen']} style={styles.button}>
+        
         <Image source={{uri: props.image}} style={styles.image} resizeMode="cover" />
         <Text style={styles.text}>{props.text}</Text>
         <Modal
@@ -70,13 +95,23 @@ const ButtonWithBackground = props => {
                 <Text style={styles.closeButtonText}>Close</Text>
               </TouchableOpacity>
 
-              
+             
             </ScrollView>
           </View>
           
         </Modal>
+        {isFavorite?(
+          <MaterialCommunityIcons name="heart" size={32} color="white" style={styles.favoriteIcon} onPress={removeFromFavorites} />
+        ) : ( <MaterialCommunityIcons name="heart-outline" size={32} color="white" style={styles.favoriteIcon} onPress={addToFavorites} />
+      )}
       </LinearGradient>
     </TouchableOpacity>
+    
+    </View>
+
+    </View>
+
+    
 
     
   );
@@ -96,6 +131,7 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     marginTop: 188,
+    fontFamily: "monospace"
   },
   image: {
     width: 360,
@@ -179,12 +215,54 @@ const styles = StyleSheet.create({
     width: 181,
   
   },
+  favoriteIcon: {
+    bottom: 210,
+    left: 290,
+    zIndex: 1,
+  },
+  savedButton: {
+    position: "absolute",
+  },
 });
 
 export default function App() {
+//   const [locations, setLocations] = useState([
+//     {
+//       text: "Sultan Ahmed Mosque",
+//       image:"https://trthaberstatic.cdn.wp.trt.com.tr/resimler/2032000/sultanahmet-camii-aa-2033022.jpg",
+//       num: 1,
+//     },
+//     {
+//       text: "Bosphorus",
+//       image:"https://lh5.googleusercontent.com/proxy/w2dEY4MpQOYKVXAMSXXdG44ETq4Ac4aAO8cR0n2UQQQ01kSIJujFPIRcghHnSUBt2MbZ2Dg-qLFd7zwk0ab9FWmcfrsrEELWh5ckqX7agE7tLElhck-Ip45YOcrFeoPmFsfmSA",
+//       num: 2,
+//     },
+//     {
+//       text: "Avcilar Baris Manco Cultural Center",
+//       image: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/07/1c/96/27/very-nice-center.jpg?w=1200&h=1200&s=1",
+//       num: 3,
+//     },
+//     {
+//       text: "Topkapi Palace",
+//       image: "https://istanbultarihi.ist/assets/uploads/files/cilt-8/topkapi-sarayi/3-topkapi-sarayi-gulhane-tarafindan.jpg",
+//       num: 4,
+//     },
+//     {
+//       text: "İstiklal Caddesi",
+//       image: "https://i.neredekal.com/i/neredekal/75/585x300/607d72f6a26c8a5c640267bd",
+//       num: 5,
+//     },
+//     {
+//       text: "Technical University of Sofia",
+//       image: "https://lh5.googleusercontent.com/proxy/dis_ROCaIxt6jwr0jlE2Gv9eXuLp2zE_YNE51WLWZj7FNAPRbsQVNZ8hFSMlKUZuI0dYMD7dqdT_VaY92xnBKOsBNg",
+//       num: 6,
+//     }
+// ]);
+
   return (
+    <View>
     <View style={styles.container}>
-    <ButtonWithBackground
+    {/* <ButtonWithBackground
         text= "Sultan Ahmed Mosque"
         image="https://trthaberstatic.cdn.wp.trt.com.tr/resimler/2032000/sultanahmet-camii-aa-2033022.jpg"
         onPress={() => handleShowOnMaps("Sultan Ahmed Mosque")}
@@ -212,7 +290,39 @@ export default function App() {
         text= "Technical University of Sofia"
         image= "https://lh5.googleusercontent.com/proxy/dis_ROCaIxt6jwr0jlE2Gv9eXuLp2zE_YNE51WLWZj7FNAPRbsQVNZ8hFSMlKUZuI0dYMD7dqdT_VaY92xnBKOsBNg"
         onPress = {() => setSelectedLocation("Technical University of Sofia")}
-        />
+        /> */}
+        {locations.map(location => (
+          <ButtonWithBackground
+            key={location.text}
+            text={location.text}
+            image={location.image}
+            isFavorite={location.isFavorite}
+          />
+        ))}
+    </View>
+    
     </View>
   );
 }
+
+const style2 = StyleSheet.create({
+  weirdbutton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    elevation: 10,
+    backgroundColor: 'darkseagreen',
+    height: 50,
+    width: 300,
+    top: 565,
+    left: 30,
+    elevation: 10,
+    borderRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+  }
+})

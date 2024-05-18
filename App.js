@@ -8,6 +8,7 @@ import SettingsScreen from './navigation/screens/SettingsScreen';
 import { Ionicons } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
 import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 import * as Deprecated from "deprecated-react-native-prop-types";
 
 
@@ -64,19 +65,6 @@ export default function App() {
           component={MapScreen} 
           options={{
             title: 'GuideApp',
-            headerRight: () => (
-              <TouchableOpacity 
-              style= {{
-                backgroundColor: "darkseagreen",
-                padding: 10,
-                marginRight: 10,
-              }}
-              onPress={() => navigation.navigate('Map', { toggleSearch: toggleSearch })}
-               >
-                <FontAwesome name="search" size={24} color="black" />
-                </TouchableOpacity>
-
-          ),
             headerStyle: {
               backgroundColor: "darkseagreen",
             },
@@ -104,8 +92,8 @@ export default function App() {
               fontFamily: 'monospace',
               fontWeight: "bold"
             },
-            tabBarLabel: 'Settings', 
-            tabBarIcon: () =>  <Ionicons name="settings-sharp" size={24} color="black" />,    
+            tabBarLabel: 'Profile', 
+            tabBarIcon: () =>  <FontAwesome5 name="portrait" size={24} color="black" />,    
             tabBarLabelStyle: {
               fontFamily: 'monospace',
               fontWeight: "bold",
