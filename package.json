@@ -18,7 +18,7 @@
     "axios": "0.27.2",
     "clarifai": "^2.9.1",
     "deprecated-react-native-prop-types": "^5.0.0",
-    "eas-cli": "^7.8.5",
+    "eas-cli": "^7.8.0",
     "expo": "^51.0.2",
     "expo-av": "~14.0.4",
     "expo-image-picker": "~15.0.4",
