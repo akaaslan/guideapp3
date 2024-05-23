@@ -31,6 +31,7 @@ export default function MapScreen({ navigation }) {
   const [nearestMarkers, setNearestMarkers] = useState([]);
   const [searchLocation, setSearchLocation] = useState("");
   const [favMarkers, setFavMarkers] = useState([]);
+  const [LocationSelected, setLocationSelected] = useState(false);
   const [markers, setMarkers] = useState([
     { id: 1, title: "Blue Mosque", coordinate: { latitude: 41.0055, longitude: 28.9769 }, isfav: true, icon: null, imageUri: 'https://trthaberstatic.cdn.wp.trt.com.tr/resimler/2032000/sultanahmet-camii-aa-2033022.jpg' },
     { id: 2, title: "Bosphorus", coordinate: { latitude: 41.04654252347306, longitude: 29.03422380818258 }, isfav: true, icon: null, imageUri: 'https://lh5.googleusercontent.com/proxy/w2dEY4MpQOYKVXAMSXXdG44ETq4Ac4aAO8cR0n2UQQQ01kSIJujFPIRcghHnSUBt2MbZ2Dg-qLFd7zwk0ab9FWmcfrsrEELWh5ckqX7agE7tLElhck-Ip45YOcrFeoPmFsfmSA' },
@@ -39,7 +40,8 @@ export default function MapScreen({ navigation }) {
     { id: 5, title: "Technical University of Sofia", coordinate: { latitude: 42.65714634396518, longitude: 23.355303595910726 }, isfav: false, icon: null, imageUri: null },
     { id: 6, title: "Baris Manco Culture Center", coordinate: { latitude: 40.980239681936496, longitude: 28.72036129984934 }, isfav: false, icon: null, imageUri: null },
     { id: 7, title: "Tüpraş Stadium", coordinate: {latitude: 41.03939288554953, longitude: 28.994486794538503}, isfav: false, icon: null, imageUri: null},
-    { id: 8, title: "Rumeli Pilavcısı Haluk Baba", coordinate: {latitude:40.97858758276236, longitude:28.72354731953755}, isfav: false, icon: null, imageUri: `https://img.restaurantguru.com/r3c7-Rumeli-Pilavc-s-interior-2021-09-3.jpg`}
+    { id: 8, title: "Rumeli Pilavcısı Haluk Baba", coordinate: {latitude:40.97858758276236, longitude:28.72354731953755}, isfav: false, icon: null, imageUri: `https://img.restaurantguru.com/r3c7-Rumeli-Pilavc-s-interior-2021-09-3.jpg`},
+    { id: 9, title: "Saint Antoine Church", coordinate: {latitude: 41.0325018073799, longitude:28.97714412490903}, isfav: false, icon: null}
   ]);
 
   const GOOGLE_MAPS_API_KEY = 'AIzaSyDkk9xmxjAS0BMU9ym4_e6LTdBlArakEnI'; // Google Maps API anahtarınızı buraya ekleyin
@@ -521,6 +523,7 @@ export default function MapScreen({ navigation }) {
       setSelectedLocations(selectedLocations.filter((item) => item !== id));
     };
     handleShowPolylineRoute();
+    setLocationSelected(true);
   };
 
   const renderMarkers = () => {
@@ -581,7 +584,7 @@ export default function MapScreen({ navigation }) {
   const handleShowPolylineRoute = () => {
     setShowRoutePolyline(true);
   }
-
+  
 
   return (
     <View style={{ flex: 1 }}>
@@ -685,15 +688,16 @@ export default function MapScreen({ navigation }) {
               style={{ 
                 backgroundColor: markers.isfav ? "salmon" : "darkseagreen", 
                 width: 300, 
-                height: 50,
+                height: 70,
                 alignItems: "center"
               }}
               onPress={() => {toggleFavorite(markers.id),console.log(`${markers.isfav},${markers.title}`)}} // toggleFavorite fonksiyonunu çağırırken marker'ın id'sini değil, title'ını gönderiyoruz
             >
-              <Text>
+              <Text style = {{justifyContent: "center", fontFamily: "monospace", fontWeight: "bold",marginTop: 10, fontSize: 18, color: "white"}}>
                 {markers.isfav ? "In Favorites" : "Add To Favorites"}
-                <AntDesign name={markers.isfav ? "heart" : "hearto"} size={24} color="black" />
               </Text>
+              <AntDesign name={markers.isfav ? "heart" : "hearto"} size={26} color={markers.isfav ? "red" : "white"} style={{marginTop: 5}}/>
+
             </TouchableOpacity>
           </View>
           <TouchableOpacity
