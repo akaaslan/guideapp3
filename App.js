@@ -22,8 +22,8 @@ const Tab = createBottomTabNavigator();
 export default function App() {
   
   return (
-    <NavigationContainer>
       <DarkModeProvider>
+    <NavigationContainer>
       <Tab.Navigator
         screenOptions={{
           tabBarInactiveBackgroundColor: "darkseagreen",
@@ -126,8 +126,8 @@ export default function App() {
         }}
         /> */}
       </Tab.Navigator>
-      </DarkModeProvider>
     </NavigationContainer>
+      </DarkModeProvider>
   );
 }
 

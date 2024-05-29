@@ -8,6 +8,7 @@ import { ToastAndroid } from "react-native";
 import locations from "./Locations";
 import SettingsScreen from "./navigation/screens/SettingsScreen";
 
+
 if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
