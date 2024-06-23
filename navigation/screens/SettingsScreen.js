@@ -32,7 +32,7 @@ export default function SettingsScreen() {
 
   const [contacts, setContacts] = React.useState([{ label: 'Emergency', number: '112' }]);
   const [newContact, setNewContact] = React.useState('');
-  const [selectedCountry, setSelectedCountry] = React.useState('Turkey');
+  const [selectedCountry, setSelectedCountry] = React.useState('Bulgaria');
 
   const countryEmergencyNumbers = {
     Turkey: '112',
@@ -47,14 +47,14 @@ export default function SettingsScreen() {
 
   const addContact = () => {
     if (contacts.length < 4 && newContact) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); // Numara eklenirken animasyonu uygula
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); 
       setContacts([...contacts, { label: `Contact ${contacts.length}`, number: newContact }]);
       setNewContact('');
     }
   };
 
   const deleteContact = (index) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); // Numara silinirken animasyonu uygula
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     const updatedContacts = [...contacts];
     updatedContacts.splice(index, 1);
     setContacts(updatedContacts);
@@ -197,6 +197,7 @@ export default function SettingsScreen() {
             )}
           </Animated.View>
         </View>
+        
 
       </View>
     </ScrollView>
@@ -258,7 +259,7 @@ const styles = StyleSheet.create({
     borderColor: "lightgrey",
     borderWidth: 2,
     borderRadius: 20,
-    backgroundColor: 'white', // Arka plan rengi eklendi
+    backgroundColor: 'white', 
   },
   buttonStyle: {
     overflow: "hidden",
@@ -268,7 +269,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignSelf: "center",
     // marginTop: 10,
-    backgroundColor: 'white', // Arka plan rengi eklendi
+    backgroundColor: 'white', 
   },
   textStyle: {
     fontSize: 16,

@@ -41,10 +41,13 @@ export default function MapScreen({ navigation }) {
     { id: 6, title: "Baris Manco Culture Center", coordinate: { latitude: 40.980239681936496, longitude: 28.72036129984934 }, isfav: false, icon: null, imageUri: null },
     { id: 7, title: "Tüpraş Stadium", coordinate: {latitude: 41.03939288554953, longitude: 28.994486794538503}, isfav: false, icon: null, imageUri: null},
     { id: 8, title: "Rumeli Pilavcısı Haluk Baba", coordinate: {latitude:40.97858758276236, longitude:28.72354731953755}, isfav: false, icon: null, imageUri: `https://img.restaurantguru.com/r3c7-Rumeli-Pilavc-s-interior-2021-09-3.jpg`},
-    { id: 9, title: "Saint Antoine Church", coordinate: {latitude: 41.0325018073799, longitude:28.97714412490903}, isfav: false, icon: null}
+    { id: 9, title: "Saint Antoine Church", coordinate: {latitude: 41.0325018073799, longitude:28.97714412490903}, isfav: false, icon: null},
+    { id: 10, title: "Banyabashi Mosque", coordinate: {latitude:42.69980164057452, longitude:23.322464066322517}, isfav: false, icon: null},
+    { id: 11, title: "Alexander Nevski Cathedral", coordinate: {latitude:42.696188677663386, longitude:23.332963688790617}, isfav: true, icon: null},
+    { id: 12, title: "Sveti Georgi Church", coordinate: {latitude:42.697054016632286, longitude:23.322802904917967}, isfav: true, icon: null}
   ]);
 
-  const GOOGLE_MAPS_API_KEY = 'AIzaSyDkk9xmxjAS0BMU9ym4_e6LTdBlArakEnI'; // Google Maps API anahtarınızı buraya ekleyin
+  const GOOGLE_MAPS_API_KEY = 'AIzaSyDkk9xmxjAS0BMU9ym4_e6LTdBlArakEnI'; 
   const screenRoute = useRoute();
 
   const toggleFavorite = (markerId) => {
@@ -273,17 +276,14 @@ export default function MapScreen({ navigation }) {
       ]
       )
     }  else {
-      // Farklı bir marker için Wikipedia sayfasına yönlendir
       navigateToWikipedia(title);
     }
   }
 
   const navigateToWikipedia = (title) => {
-    // Marker başlığından boşlukları kaldırarak Wikipedia URL'sini oluştur
     const wikipediaTitle = title.replace(/\s+/g, '_');
     const wikipediaUrl = `https://en.wikipedia.org/wiki/${wikipediaTitle}`;
   
-    // URL'yi aç
     Linking.openURL(wikipediaUrl)
       .catch(err => console.error('Error opening Wikipedia page:', err));
   }
@@ -303,7 +303,7 @@ export default function MapScreen({ navigation }) {
 
   
 
-  const handleMarkerPress = async (coordinate,title) => {
+  const handleMarkerPress = async (coordinate, title) => {
     if (!location) {
       console.log("Location is not available yet.");
       return;
@@ -321,18 +321,21 @@ export default function MapScreen({ navigation }) {
       console.error('Error fetching directions:', error);
     }
     setDestinationSeleceted(true);
-    
+  
+    mapRef.current.fitToCoordinates([location.coords, coordinate], {
+      edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+      animated: true,
+    });
   };
-
-  const isMarkerVisible = (markerCoordinate, currentLocation, maxDistance) => {
-    if (!currentLocation || !markerCoordinate) {
-      return false;
-    }
-    const { latitude: markerLat, longitude: markerLng } = markerCoordinate;
-    const { latitude: currentLat, longitude: currentLng } = currentLocation.coords;
-    const distance = Math.sqrt(Math.pow(markerLat - currentLat, 2) + Math.pow(markerLng - currentLng, 2)) * 111000; // 1 derece = 111km
-    return distance <= maxDistance;
-  };
+    const isMarkerVisible = (markerCoordinate, currentLocation, maxDistance) => {
+      if (!currentLocation || !markerCoordinate) {
+        return false;
+      }
+      const { latitude: markerLat, longitude: markerLng } = markerCoordinate;
+      const { latitude: currentLat, longitude: currentLng } = currentLocation.coords;
+      const distance = Math.sqrt(Math.pow(markerLat - currentLat, 2) + Math.pow(markerLng - currentLng, 2)) * 111000; // 1 degree = 111km
+      return distance <= maxDistance;
+    };
 
   const findNearestMarkers = () => {
     if (!location) {
@@ -344,7 +347,7 @@ export default function MapScreen({ navigation }) {
         const distance = Math.sqrt(
           Math.pow(marker.coordinate.latitude - location.coords.latitude, 2) +
           Math.pow(marker.coordinate.longitude - location.coords.longitude, 2)
-        ) * 111000; // 1 derece = 111km
+        ) * 111000; // 1 degree = 111km
         return { ...marker, distance };
       })
       .sort((a, b) => a.distance - b.distance)
@@ -354,29 +357,29 @@ export default function MapScreen({ navigation }) {
     setNearestMarkers(sortedMarkers);
   };
 
-  // useEffect(() => {
-  //   const checkNearbyMarkers = () => {
-  //     markers.forEach(marker => {
-  //       if (isMarkerVisible(marker.coordinate, location, 1000)) {
-  //         Alert.alert(
-  //           "You're close!",
-  //           `You're close to ${marker.title}! Do you want to see how you can go?`,
-  //           [
-  //             {
-  //               text: "No, I'm good.",
-  //               onPress: () => console.log("User pressed no. :("),
-  //               style: "cancel"
-  //             },
-  //             { text: "Yes, let's go!", onPress: () => handleMarkerPress(marker.coordinate, marker.title) }
-  //           ],
-  //           { cancelable: false }
-  //         );
-  //       }
-  //     });
-  //   };
+  useEffect(() => {
+    const checkNearbyMarkers = () => {
+      markers.forEach(marker => {
+        if (isMarkerVisible(marker.coordinate, location, 1000)) {
+          Alert.alert(
+            "You're close!",
+            `You're close to ${marker.title}! Do you want to see how you can go?`,
+            [
+              {
+                text: "No, I'm good.",
+                onPress: () => console.log("User pressed no. :("),
+                style: "cancel"
+              },
+              { text: "Yes, let's go!", onPress: () => handleMarkerPress(marker.coordinate, marker.title) }
+            ],
+            { cancelable: false }
+          );
+        }
+      });
+    };
   
-  //   checkNearbyMarkers();
-  // }, [location, markers]);
+    checkNearbyMarkers();
+  }, [location, markers]);
 
   const isMarkerCloseEnough = (markerCoordinate, currentLocation, ) => {
     if (!isCloseEnoughEnabled || !currentLocation || !markerCoordinate) {
@@ -384,8 +387,8 @@ export default function MapScreen({ navigation }) {
     }
     const { latitude: markerLat, longitude: markerLng } = markerCoordinate;
     const { latitude: currentLat, longitude: currentLng } = currentLocation.coords;
-    const distance = Math.sqrt(Math.pow(markerLat - currentLat, 2) + Math.pow(markerLng - currentLng, 2)) * 111000; // 1 derece = 111km
-    return distance <= 300; // Yakınlık mesafesi 50 metreden az ise true döndür
+    const distance = Math.sqrt(Math.pow(markerLat - currentLat, 2) + Math.pow(markerLng - currentLng, 2)) * 111000; // 1 degree = 111km
+    return distance <= 300; 
   };
 
   const setIsCloseEnoughSwitch = () => setIsCloseEnoughEnabled(previousState => !previousState);
@@ -395,8 +398,8 @@ export default function MapScreen({ navigation }) {
     const checkNearbyMarkers = () => {
       markers.forEach(marker => {
         if (isMarkerCloseEnough(marker.coordinate, location)) {
-          setViewedMarker(marker); // Yakınındaki markerı işaret et
-          setViewStartTime(Date.now()); // Başlangıç zamanını ayarla
+          setViewedMarker(marker); 
+          setViewStartTime(Date.now()); 
         }
       });
     };
@@ -406,7 +409,7 @@ export default function MapScreen({ navigation }) {
 
   const goToWikipedia = () => {
     if (viewedMarker) {
-      const title = viewedMarker.title.replace(/\s+/g, '_'); // Boşlukları alt çizgi ile değiştir
+      const title = viewedMarker.title.replace(/\s+/g, '_'); 
       const wikipediaUrl = `https://en.wikipedia.org/wiki/${viewedMarker.title}`;
       Linking.openURL(wikipediaUrl);
     }
@@ -414,9 +417,9 @@ export default function MapScreen({ navigation }) {
   
   useEffect(() => {
     let timer;
-    if (isEnabled && viewStartTime) { // isEnabled true ve viewStartTime varsa, useEffect çalışacak
+    if (isEnabled && viewStartTime) { 
       timer = setTimeout(() => {
-        // Eğer marker hala görüntüleniyorsa ve 15 saniye geçtiyse, popup'ı göster
+        
         if (viewedMarker && Date.now() - viewStartTime >= 15000) {
           Alert.alert(
             "Hmm, Interesting.",
@@ -427,15 +430,13 @@ export default function MapScreen({ navigation }) {
                 onPress: () => console.log("User pressed no. :("),
                 style: "cancel"
               },
-              { text: "Yes, I'm astonished!", onPress: () => {goToWikipedia()} } // goToWikipedia fonksiyonunu çağırmak için parantez eklenmeli
+              { text: "Yes, I'm astonished!", onPress: () => {goToWikipedia()} } 
             ],
             { cancelable: false }
           );
         }
       }, 15000);
     }
-
-    // useEffect'den dönen fonksiyon bir temizleme fonksiyonudur, component unmount edildiğinde çalışır
     return () => clearTimeout(timer);
   }, [isEnabled, viewStartTime, viewedMarker]);
 
@@ -536,7 +537,6 @@ export default function MapScreen({ navigation }) {
     ));
   }
   const renderPolylineRoute = async () => {
-    // Kullanıcının mevcut konumunu al
     if (!showRoutePolyline) return null;
     let location = null;
     try {
@@ -555,7 +555,6 @@ export default function MapScreen({ navigation }) {
     const selectedMarkers = markers.filter((marker) => selectedLocations.includes(marker.id));
     const coordinates = selectedMarkers.map((marker) => marker.coordinate);
   
-    // Eğer seçilen marker sayısı 1 veya daha azsa, polygon çizmeye gerek yok
     if (coordinates.length < 2) {
       return null;
     }
@@ -564,8 +563,7 @@ export default function MapScreen({ navigation }) {
       const response = await fetch(`https://maps.googleapis.com/maps/api/directions/json?origin=${location.coords.latitude},${location.coords.longitude}&destination=${coordinates[coordinates.length - 1].latitude},${coordinates[coordinates.length - 1].longitude}&waypoints=${coordinates.slice(0, coordinates.length - 1).map(coord => `${coord.latitude},${coord.longitude}`).join('|')}&key=${GOOGLE_MAPS_API_KEY}`);
       const data = await response.json();
       const points = decodePolyline(data.routes[0].overview_polyline.points);
-  
-      // Oluşturulan polyline'in koordinatlarını içeren bir polygon çiz
+
       return <Polyline coordinates={[{latitude: location.coords.latitude, longitude: location.coords.longitude}, ...points]} strokeColor='darkseagreen' strokeWidth={4} />;
     } catch (error) {
       console.error('Error fetching directions:', error);
@@ -689,11 +687,12 @@ export default function MapScreen({ navigation }) {
                 backgroundColor: markers.isfav ? "salmon" : "darkseagreen", 
                 width: 300, 
                 height: 70,
-                alignItems: "center"
+                alignItems: "center",
+                borderRadius: 10
               }}
-              onPress={() => {toggleFavorite(markers.id),console.log(`${markers.isfav},${markers.title}`)}} // toggleFavorite fonksiyonunu çağırırken marker'ın id'sini değil, title'ını gönderiyoruz
+              onPress={() => {toggleFavorite(markers.id),console.log(`${markers.isfav},${markers.title}`)}} 
             >
-              <Text style = {{justifyContent: "center", fontFamily: "monospace", fontWeight: "bold",marginTop: 10, fontSize: 18, color: "white"}}>
+              <Text style = {{justifyContent: "center", fontFamily: "monospace", fontWeight: "bold",marginTop: 10, fontSize: 17, color: "white"}}>
                 {markers.isfav ? "In Favorites" : "Add To Favorites"}
               </Text>
               <AntDesign name={markers.isfav ? "heart" : "hearto"} size={26} color={markers.isfav ? "red" : "white"} style={{marginTop: 5}}/>
@@ -737,9 +736,9 @@ export default function MapScreen({ navigation }) {
       <View>
 
       </View>
-      {/* action buttonun modalları burada 
-      ---------------------------------------
-      ---------------------------------------*/}
+      {/* modals for the action button starts from here
+      -------------------------------------------------
+      -------------------------------------------------*/}
 
 
       <ActionButton style = {{top: 510, left: 330}} 
@@ -748,7 +747,7 @@ export default function MapScreen({ navigation }) {
       openModal3 = {openModal3}
       openModalSettings = {openModalSettings}/>
 
-      {/* modal route */}
+      {/* modal settings */}
       <Modal
         animationType='fade'
         transparent={true}
@@ -803,6 +802,7 @@ export default function MapScreen({ navigation }) {
               style = {{left: 140, bottom: 40}}>
               <FontAwesome name="close" size={24} color= "darkseagreen" />
               </TouchableOpacity>
+              <ScrollView>
               {markers.map((marker) =>(
                 <View  key = {marker.id} style = {{flexDirection: "row", alignItems: 'center', marginVertical: 5}}>
                   <TouchableOpacity
@@ -812,14 +812,16 @@ export default function MapScreen({ navigation }) {
                     ToastAndroid.BOTTOM,
                     
                   );}}
-                  style = {{backgroundColor: "darkseagreen", width: 300, height:45, borderRadius: 5, alignContent: "center", justifyContent:"center", bottom: 25}}>
+                  style = {{backgroundColor: "darkseagreen", width: 300, height:45, borderRadius: 5, alignContent: "center", justifyContent:"center", }}>
                     <Text style = {{fontWeight:"bold", fontFamily:"monospace", fontSize: 16, alignItems: "center", marginLeft: 50}}>{selectedLocations.includes(marker.id) ? `${marker.title}` : `${marker.title}`}</Text>
                   </TouchableOpacity>
                   
                 </View>
               ))}
-              <TouchableOpacity onPress = {handleClearPolylineRoute}
-                  style = {{backgroundColor: "#520404", width: 300, height:45, borderRadius: 5, alignContent: "center", justifyContent:"center", bottom: 25}}>
+              
+                  </ScrollView>
+                  <TouchableOpacity onPress = {handleClearPolylineRoute}
+                  style = {{backgroundColor: "#520404", width: 300, height:45, borderRadius: 5, alignContent: "center", justifyContent:"center", top: 2}}>
                     <Text
                     style = {{fontWeight:"bold", fontFamily:"monospace", fontSize: 16, alignItems: "center", marginLeft: 50}}>Clear Route</Text>
                     <AntDesign name="delete" size={24} color="black" style= {{position: "absolute", left: 15}} />
@@ -861,14 +863,16 @@ export default function MapScreen({ navigation }) {
         <TouchableOpacity onPress={() => setacModal2Visible(false)} style={{ left: 140, bottom: 40 }}>
           <FontAwesome name="close" size={24} color="darkseagreen" />
         </TouchableOpacity>
+        <ScrollView>
         {favMarkers.map(marker => (
           <View key={marker.id} style={{ flexDirection: "row", alignItems: "center", marginVertical: 5 }}>
             <TouchableOpacity onPress={() => handleMarkerPress(marker.coordinate, marker.title)}
-            style = {{backgroundColor: "darkseagreen", width: 300, height:45, borderRadius: 5, alignContent: "center", justifyContent:"center", bottom: 25}}>
-              <Text style={{ fontFamily: "monospace", fontWeight: "bold", fontSize: 16, left: 100 }}>{marker.title}{marker.icon}</Text>
+            style = {{backgroundColor: "darkseagreen", width: 300, height:45, borderRadius: 5, alignContent: "center", justifyContent:"center", }}>
+              <Text style={{ fontFamily: "monospace", fontWeight: "bold", fontSize: 16, alignSelf: "center" }}>{marker.title}{marker.icon}</Text>
             </TouchableOpacity>
           </View>
         ))}
+        </ScrollView>
       </View>
     </View>
   </TouchableWithoutFeedback>
